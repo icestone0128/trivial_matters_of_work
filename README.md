@@ -1,0 +1,23 @@
+# trivial_matters_of_work
+
+這個專案用來記錄和執行工作上的一些任務。
+
+## 目錄
+
+- `100_Todo/`：任務草稿、進行中事項與封存。
+- `200_Reference/`：參考資料、模板與過去成果。
+- `AGENTS.md`：Codex 專案規則與工作方式。
+
+## 專案設定
+
+- GitHub repo：`icestone0128/trivial_matters_of_work`
+- Repo 類型：私有
+- GitHub Pages：不使用
+- Firebase：不使用
+- 部署：目前不部署
+
+## Obsidian 駕駛艙
+
+專案進度與決策記錄在：
+
+`/Users/arrywu/Library/CloudStorage/GoogleDrive-icestone0128@gmail.com/我的雲端硬碟/secondbrain/專案庫/trivial_matters_of_work/專案工作流程.md`
