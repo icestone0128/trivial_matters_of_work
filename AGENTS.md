@@ -20,14 +20,21 @@
 
 ## Arry 助手雙層資料層
 
-- 全域核心層：`/Users/arrywu/Library/CloudStorage/GoogleDrive-icestone0128@gmail.com/我的雲端硬碟/codex_installation/000_Agent`
+- 全域核心層：`/Users/arrywu/Library/CloudStorage/GoogleDrive-icestone0128@gmail.com/我的雲端硬碟/codex_symlink`
+- 全域 skill：`/Users/arrywu/.codex/skills/arry-assistant/SKILL.md`
+- 專案本地 assistant 層：`000_Agent/`（只放本專案專屬 skill 或 memory，不放全域核心資料）
 - 專案本地任務層：`100_Todo/`
 - 專案本地參考層：`200_Reference/`
 - 跨專案偏好、固定規則、踩坑經驗才同步到全域核心層。
 - 本專案自己的草稿、素材、進度與任務紀錄留在本專案或 Obsidian 駕駛艙。
+- 若需要專案專屬 assistant skill，建立在 `000_Agent/skills/`；若需要專案獨立記憶，建立在 `000_Agent/memory/`。
+- 不要把 `000_Agent/skills/` symlink 到 `/Users/arrywu/.codex/skills`。
 
 ## 工作流程
 
+- 新專案初始化：使用 `project-init-sync`，只補缺口，不覆蓋既有檔案或 Git 歷史。
+- 開工接續：使用 `startup-sync`，先讀本檔、Obsidian 駕駛艙與 Git 狀態。
+- 收工同步：使用 `shutdown-sync`，整理變更、更新駕駛艙；只有使用者明確要求時才 commit 或 push。
 - 開工時先讀本檔與 Obsidian 駕駛艙，確認目前狀態再動手。
 - 收工時整理本次變更、剩餘事項與下一步，必要時更新 Obsidian 駕駛艙。
 - 既有檔案只補缺口，不覆寫未確認的內容。
