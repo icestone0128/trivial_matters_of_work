@@ -22,12 +22,12 @@
 
 - 全域核心層：`/Users/arrywu/Library/CloudStorage/GoogleDrive-icestone0128@gmail.com/我的雲端硬碟/codex_symlink`
 - 全域 skill：`/Users/arrywu/.codex/skills/arry-assistant/SKILL.md`
-- 專案本地 assistant 層：`000_Agent/`（只放本專案專屬 skill 或 memory，不放全域核心資料）
+- 專案本地 assistant 層：`000_Agent/`（只放本專案專屬 skill 或 memories，不放全域核心資料）
 - 專案本地任務層：`100_Todo/`
 - 專案本地參考層：`200_Reference/`
 - 跨專案偏好、固定規則、踩坑經驗才同步到全域核心層。
 - 本專案自己的草稿、素材、進度與任務紀錄留在本專案或 Obsidian 駕駛艙。
-- 若需要專案專屬 assistant skill，建立在 `000_Agent/skills/`；若需要專案獨立記憶，建立在 `000_Agent/memory/`。
+- 若需要專案專屬 assistant skill，建立在 `000_Agent/skills/`；若需要專案獨立記憶，建立在 `000_Agent/memories/`。
 - 不要把 `000_Agent/skills/` symlink 到 `/Users/arrywu/.codex/skills`。
 
 ## 工作流程

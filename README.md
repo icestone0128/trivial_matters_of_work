@@ -6,7 +6,7 @@
 
 - `100_Todo/`：任務草稿、進行中事項與封存。
 - `200_Reference/`：參考資料、模板與過去成果。
-- `000_Agent/`：Arry 助手專案本地層，只放本專案專屬 skill 或 memory。
+- `000_Agent/`：Arry 助手專案本地層，只放本專案專屬 skill 或 memories。
 - `AGENTS.md`：Codex 專案規則與工作方式。
 
 標準本地資料層：
