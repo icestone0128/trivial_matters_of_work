@@ -2,9 +2,11 @@
 .env
 .env.*
 !.env.example
+.npmrc
 
 .codex/
 .claude/
+.codex-sandbox/
 
 node_modules/
 dist/
