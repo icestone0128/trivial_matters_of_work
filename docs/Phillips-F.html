@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phillips / F頭 版本</title>
+    <style>
+        :root {
+            --primary-color: #00a854;
+            --secondary-color: #ff4d4f;
+            --bg-color: #f0f2f5;
+            --panel-bg: #ffffff;
+            --slot-color: #1890ff;
+            --thickness-color: #e91e63;
+            --warning-bg: #fffbe6;
+            --warning-border: #ffe58f;
+            --control-bg: #f5f5f5; /* 統一的灰色底色 */
+        }
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        .container { 
+            background: var(--panel-bg); 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 1200px; 
+        }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        
+        /* 統一的控制面板區塊 */
+        .control-panel {
+            background: var(--control-bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .control-row { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 20px; 
+        }
+
+        /* 分隔線 */
+        .row-divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 5px 0;
+        }
+
+        .control-item { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            justify-content: flex-end;
+        }
+        
+        .label-row { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 14px; }
+        .limit-hint { color: var(--secondary-color); font-weight: bold; display: none; margin-right: 5px; }
+        
+        .input-group { display: flex; gap: 10px; align-items: center; }
+        input[type=number], select { 
+            width: 100%;
+            padding: 6px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            font-size: 14px;
+            outline: none; 
+            background: white;
+        }
+        input[type=number] { width: 70px; font-family: monospace; }
+        input[type=range] { flex: 1; cursor: pointer; }
+
+        .design-warning {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            color: #856404;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .info-display { 
+            display: flex; 
+            flex-wrap: wrap;
+            justify-content: center; 
+            gap: 20px; 
+            margin-bottom: 15px; 
+        }
+        .result-overlay {
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .status-danger { background: #fff1f0; border-color: var(--secondary-color); color: #cf1322; }
+        .status-success { background: #f6ffed; border-color: var(--primary-color); color: #389e0d; }
+
+        .drawing-area { 
+            width: 100%; 
+            height: 550px; 
+            background: #ffffff; 
+            border: 1px solid #eeeeee; 
+            border-radius: 8px; 
+            position: relative; 
+            overflow: hidden; 
+        }
+        svg { width: 100%; height: 100%; }
+
+        .bolt-path { fill: #e6e6e6; stroke: #333; stroke-width: 1.5; }
+        .slot-path { fill: #ffffff; stroke: var(--slot-color); stroke-width: 2; fill-opacity: 0.9; }
+        
+        .dim-line { stroke: var(--primary-color); stroke-width: 1.5; fill: none; }
+        .ext-line { stroke: var(--primary-color); stroke-width: 1; stroke-opacity: 0.6; }
+        .aux-line { stroke: #666; stroke-width: 1; stroke-dasharray: 8,4,2,4; } 
+        .label-text { font-size: 18px; font-weight: bold; fill: #000; }
+        
+        .angle-arc { stroke: var(--primary-color); stroke-width: 2.5; fill: none; }
+        .angle-text { font-size: 20px; font-weight: 900; fill: #000; }
+        
+        .min-thick-line { stroke: var(--thickness-color); stroke-width: 4; stroke-linecap: round; }
+
+        #geoWarn { font-size: 12px; display: block; margin-top: 4px; color: var(--secondary-color); font-weight: normal; }
+
+        @media (max-width: 900px) {
+            .control-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Phillips / F頭 版本</h2>
+
+    <!-- 統一的灰色控制面板 -->
+    <div class="control-panel">
+        <!-- 第一行：頭徑、頭厚、角度 -->
+        <div class="control-row">
+            <div class="control-item">
+                <div class="label-row"><label>D (頭徑):</label><span id="valD_txt">5.00 mm</span></div>
+                <div class="input-group">
+                    <input type="number" id="numD" step="0.01" value="5.00">
+                    <input type="range" id="rangeD" min="3.1" max="10.0" step="0.01" value="5.00">
+                </div>
+            </div>
+            <div class="control-item">
+                <div class="label-row"><label>T (頭厚):</label><span id="valT_txt">1.00 mm</span></div>
+                <div class="input-group">
+                    <input type="number" id="numT" step="0.01" value="1.00">
+                    <input type="range" id="rangeT" min="0.5" max="1.5" step="0.01" value="1.00">
+                </div>
+            </div>
+            <div class="control-item">
+                <div class="label-row">
+                    <label>A (角度):</label>
+                    <div>
+                        <span id="geoLimitLabel" class="limit-hint">(幾何限制) </span>
+                        <span id="valA_txt">100.0°</span>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <input type="number" id="numA" step="0.1" value="100.0">
+                    <input type="range" id="rangeA" min="10" max="179" step="0.1" value="100.0">
+                </div>
+            </div>
+        </div>
+
+        <div class="row-divider"></div>
+
+        <!-- 第二行：參考槽型選定、槽深、槽外徑 -->
+        <div class="control-row">
+            <div class="control-item">
+                <div class="label-row">槽型尺寸:</label></div>
+                <div class="input-group">
+                    <select id="slotTypeSelect">
+                        <option value="custom">自定義尺寸</option>
+                        <option value="p1_05">Phillips #1 (Ref. T = 0.5) </option>
+                        <option value="p1_06">Phillips #1 (Ref. T = 0.6) </option>
+                        <option value="p1_08">Phillips #1 (Ref. T = 0.8) </option>
+                        <option value="p2_08_11">Phillips #2 (Ref. T = 0.8 - 1.1) </option>
+                        <option value="p2_12_15">Phillips #2 (Ref. T = 1.2 - 1.5) </option>
+                        <option value="p2_15_50" selected>Phillips #2 (Ref. T = 1.5 - 5.0) </option>
+                    </select>
+                </div>
+            </div>
+            <div class="control-item">
+                <div class="label-row"><label>Q (槽深):</label><span id="valQ_txt">0.91 mm</span></div>
+                <div class="input-group">
+                    <input type="number" id="numQ" step="0.01" value="0.91">
+                    <input type="range" id="rangeQ" min="0.5" max="1.5" step="0.01" value="0.91">
+                </div>
+            </div>
+            <div class="control-item">
+                <div class="label-row"><label>d (槽外徑):</label><span id="vald_txt">3.60 mm</span></div>
+                <div class="input-group">
+                    <input type="number" id="numd" step="0.01" value="3.60">
+                    <input type="range" id="ranged" min="2.0" max="4.0" step="0.01" value="3.60">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 設計提醒橫幅 -->
+    <div class="design-warning">
+        ⚠️設計提醒：<strong>Phillips</strong> 槽外徑與槽深尺寸因廠商不同而異，設計時請確認實際沖頭尺寸。
+    </div>
+
+    <div class="info-display">
+        <div id="resultBox" class="result-overlay status-success">
+            <div>最小肉厚 (紅實線): <span id="minThick">0.000</span> mm</div>
+            <span id="geoWarn"></span>
+        </div>
+        <div id="statusBox" class="result-overlay status-success">
+            <div>Check Min. Wall Thickness (≥ 0.35 mm): <span id="checkText">PASS</span></div>
+        </div>
+    </div>
+
+    <div class="drawing-area">
+        <svg id="svgBolt">
+            <defs>
+                <marker id="arrow-A-start" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                    <polygon points="10 0, 0 3.5, 10 7" fill="var(--primary-color)" />
+                </marker>
+                <marker id="arrow-A-end" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="var(--primary-color)" />
+                </marker>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="var(--primary-color)" />
+                </marker>
+                <marker id="arrowhead-reverse" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                    <polygon points="10 0, 0 3.5, 10 7" fill="var(--primary-color)" />
+                </marker>
+                <clipPath id="boltClip">
+                    <path id="boltClipPath" />
+                </clipPath>
+            </defs>
+            
+            <path id="boltShape" class="bolt-path" />
+            <path id="slotShape" class="slot-path" clip-path="url(#boltClip)" />
+            
+            <line id="centerLine" class="aux-line" />
+            
+            <line id="refAL_dashed" class="dim-line" style="stroke-dasharray: 6,4; opacity: 0.5;" />
+            <line id="refAR_dashed" class="dim-line" style="stroke-dasharray: 6,4; opacity: 0.5;" />
+            <path id="dimA" class="angle-arc" marker-start="url(#arrow-A-start)" marker-end="url(#arrow-A-end)" />
+            <text id="lblA" class="angle-text" text-anchor="middle"></text>
+
+            <g id="dimensions">
+                <line id="dimD" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extD1" class="ext-line" /><line id="extD2" class="ext-line" />
+                <text id="lblD" class="label-text" text-anchor="middle"></text>
+
+                <line id="dimd" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extd1" class="ext-line" /><line id="extd2" class="ext-line" />
+                <text id="lbld" class="label-text" text-anchor="middle"></text>
+
+                <line id="dimQ" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extQ1" class="ext-line" /><line id="extQ2" class="ext-line" />
+                <text id="lblQ" class="label-text" text-anchor="end"></text>
+
+                <line id="dimT" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extT1" class="ext-line" /><line id="extT2" class="ext-line" />
+                <text id="lblT" class="label-text" text-anchor="start"></text>
+
+                <line id="dimM" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extM1" class="ext-line" /><line id="extM2" class="ext-line" />
+                <text id="lblM" class="label-text" text-anchor="middle"></text>
+            </g>
+
+            <line id="minThickLine" class="min-thick-line" />
+        </svg>
+    </div>
+</div>
+
+<script>
+    const LIMITS = {
+        D: { min: 3.10, max: 10.00 },
+        T: { min: 0.50, max: 1.50 },
+        Q: { min: 0.50, max: 1.50 },
+        d: { min: 2.00, max: 4.00 },
+        A: { min: 10.0,  max: 179.0 }
+    };
+
+    const SLOT_PRESETS = {
+        'p1_05': { d: 2.2, Q: 0.7 },
+        'p1_06': { d: 2.4, Q: 0.8 },
+        'p1_08': { d: 2.6, Q: 1.0 },
+        'p2_08_11': { d: 3.2, Q: 0.8 },
+        'p2_12_15': { d: 3.25, Q: 0.9 },
+        'p2_15_50': { d: 3.6, Q: 0.91 }
+    };
+
+    const M_FIXED = 3.00;      
+    const scale = 110; 
+    const centerX = 550;
+    const originY = 280; 
+
+    let currentState = { A: 100.0, D: 5.00, T: 1.00, Q: 0.91, d: 3.60 };
+
+    window.addEventListener('DOMContentLoaded', () => {
+        setupListeners();
+        draw();
+    });
+
+    function setupListeners() {
+        const slotTypeSelect = document.getElementById('slotTypeSelect');
+        if (slotTypeSelect) {
+            slotTypeSelect.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (SLOT_PRESETS[val]) {
+                    currentState = { ...currentState, Q: SLOT_PRESETS[val].Q, d: SLOT_PRESETS[val].d };
+                    syncUI(currentState);
+                    draw();
+                }
+            });
+        }
+
+        ['A', 'D', 'T', 'Q', 'd'].forEach(id => {
+            const num = document.getElementById(`num${id}`);
+            const ran = document.getElementById(`range${id}`);
+            
+            if (num) {
+                num.addEventListener('change', (e) => {
+                    let val = parseFloat(e.target.value);
+                    if (isNaN(val)) { syncUI(currentState); return; }
+                    processInput(id, val, true);
+                });
+            }
+            if (ran) {
+                ran.addEventListener('input', (e) => {
+                    let val = parseFloat(e.target.value);
+                    processInput(id, val, false);
+                });
+            }
+        });
+    }
+
+    function processInput(id, val, forceClamp = false) {
+        let targetVal = val;
+        if (forceClamp && LIMITS[id]) {
+            if (targetVal < LIMITS[id].min) targetVal = LIMITS[id].min;
+            if (targetVal > LIMITS[id].max) targetVal = LIMITS[id].max;
+        }
+
+        let newState = { ...currentState, [id]: targetVal };
+        const minTanHalfA = (newState.D - M_FIXED) / (2 * newState.T);
+        const minA = (Math.atan(minTanHalfA) * 2 * 180 / Math.PI);
+        const geoLimitLabel = document.getElementById('geoLimitLabel');
+
+        if (newState.A <= minA + 0.001) {
+            newState.A = minA;
+            if (geoLimitLabel) geoLimitLabel.style.display = 'inline';
+        } else {
+            if (geoLimitLabel) geoLimitLabel.style.display = 'none';
+        }
+
+        let currentViol = getViolationInfo(currentState.A, currentState.D, currentState.T, currentState.Q, currentState.d);
+        let newViol = getViolationInfo(newState.A, newState.D, newState.T, newState.Q, newState.d);
+        
+        if (currentViol.isViolating && newViol.isViolating && newViol.score > currentViol.score + 1e-4) {
+            syncUI(currentState);
+            return;
+        }
+        
+        currentState = newState;
+        syncUI(currentState);
+        draw();
+    }
+
+    function syncUI(state) {
+        ['A', 'D', 'T', 'Q', 'd'].forEach(id => {
+            const num = document.getElementById(`num${id}`);
+            const ran = document.getElementById(`range${id}`);
+            const txt = document.getElementById(`val${id}_txt`);
+            const decimal = id === 'A' ? 1 : 2;
+            if(num) num.value = state[id].toFixed(decimal);
+            if(ran) ran.value = state[id];
+            if(txt) txt.innerText = state[id].toFixed(decimal) + (id === 'A' ? "°" : " mm");
+        });
+
+        const slotTypeSelect = document.getElementById('slotTypeSelect');
+        if (slotTypeSelect) {
+            let found = false;
+            for (const [key, val] of Object.entries(SLOT_PRESETS)) {
+                if (Math.abs(val.Q - state.Q) < 0.001 && Math.abs(val.d - state.d) < 0.001) {
+                    slotTypeSelect.value = key;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                slotTypeSelect.value = 'custom';
+            }
+        }
+    }
+
+    function getSx(y, d, Q) {
+        const tan26_3 = Math.tan(26.3 * Math.PI / 180);
+        const tan28 = Math.tan(28.0 * Math.PI / 180);
+        const x_P = d/2 - Q * tan26_3;
+        const y_tip = x_P >= 0 ? Q + x_P * tan28 : Q;
+        if (y <= Q) return d/2 - y * tan26_3;
+        if (y <= y_tip) {
+            if (y_tip === Q) return x_P;
+            return x_P - (y - Q) * (x_P / (y_tip - Q));
+        }
+        return 0;
+    }
+
+    function getViolationInfo(A, D, T, Q, d) {
+        const halfARad = (A/2) * Math.PI / 180;
+        const tanHalfA = Math.tan(halfARad);
+        const slopeHalfWidth = (D - M_FIXED) / 2;
+        const slopeHeightReq = slopeHalfWidth / tanHalfA;
+        const verticalPartHeight = Math.max(0, T - slopeHeightReq);
+        const tan26_3 = Math.tan(26.3 * Math.PI / 180);
+        const x_P = d/2 - Q * tan26_3;
+        const tan28 = Math.tan(28.0 * Math.PI / 180);
+        const y_tip = x_P >= 0 ? Q + x_P * tan28 : Q;
+
+        let maxViol = 0;
+        const samples = 40;
+        const dy = Math.max(Q, y_tip) / samples;
+        for (let i = 0; i <= samples; i++) {
+            let y = i * dy;
+            let sx = getSx(y, d, Q);
+            let bx = (y <= verticalPartHeight) ? D/2 : 
+                     (y <= T) ? D/2 + (y - verticalPartHeight) * ((M_FIXED/2 - D/2)/(T - verticalPartHeight)) : M_FIXED/2;
+            let diff = sx - bx;
+            if (diff > 1e-4) maxViol = Math.max(maxViol, diff);
+        }
+        return { isViolating: maxViol > 1e-4, score: maxViol };
+    }
+
+    function pointToSegmentDistance(Px, Py, Ax, Ay, Bx, By) {
+        const dx = Bx - Ax, dy = By - Ay;
+        const lengthSq = dx * dx + dy * dy;
+        if (lengthSq === 0) return null;
+        const t = ((Px - Ax) * dx + (Py - Ay) * dy) / lengthSq;
+        if (t < -1e-6 || t > 1 + 1e-6) return null;
+        return { distance: Math.sqrt((Px - (Ax + t * dx)) ** 2 + (Py - (Ay + t * dy)) ** 2), x: Ax + t * dx, y: Ay + t * dy };
+    }
+
+    function draw() {
+        const { A: A_deg, D, T, Q, d } = currentState;
+        const viol = getViolationInfo(A_deg, D, T, Q, d);
+        const geoWarn = document.getElementById('geoWarn');
+        const slotShape = document.getElementById('slotShape');
+        const resultBox = document.getElementById('resultBox');
+        const statusBox = document.getElementById('statusBox');
+
+        if (viol.isViolating) {
+            if(geoWarn) geoWarn.innerText = "[幾何限制: 槽位超出頭部]";
+            if(slotShape) { slotShape.style.stroke = "red"; slotShape.removeAttribute('clip-path'); }
+        } else {
+            if(geoWarn) geoWarn.innerText = "";
+            if(slotShape) { slotShape.style.stroke = "var(--slot-color)"; slotShape.setAttribute('clip-path', 'url(#boltClip)'); }
+        }
+
+        const sD = D * scale, sT = T * scale, sQ = Q * scale, sM = M_FIXED * scale, sd = d * scale;
+        const topY = originY - sT;
+        const halfARad = (A_deg/2) * Math.PI / 180;
+        const tanHalfA = Math.tan(halfARad);
+        const slopeHalfWidth = (D - M_FIXED) / 2;
+        const slopeHeightReq = slopeHalfWidth / tanHalfA;
+        const verticalPartHeight = Math.max(0, T - slopeHeightReq);
+        const slopeStartY = topY + verticalPartHeight * scale; 
+        const tanAng1 = Math.tan(26.3 * Math.PI / 180);
+        const intersectX = sd/2 - sQ * tanAng1;
+        const intersectY = topY + sQ;
+        const tipY = intersectY + Math.max(0, intersectX) * Math.tan(28.0 * Math.PI / 180);
+        const boltBottomY = Math.max(originY + 180, tipY + 60);
+
+        const boltPathStr = `M ${centerX - sD/2},${topY} L ${centerX - sD/2},${slopeStartY} L ${centerX - sM/2},${originY} L ${centerX - sM/2},${boltBottomY} L ${centerX + sM/2},${boltBottomY} L ${centerX + sM/2},${originY} L ${centerX + sD/2},${slopeStartY} L ${centerX + sD/2},${topY} Z`;
+        document.getElementById('boltShape').setAttribute('d', boltPathStr);
+        document.getElementById('boltClipPath').setAttribute('d', boltPathStr);
+        document.getElementById('slotShape').setAttribute('d', `M ${centerX - sd/2},${topY} L ${centerX - intersectX},${intersectY} L ${centerX},${tipY} L ${centerX + intersectX},${intersectY} L ${centerX + sd/2},${topY} Z`);
+
+        setLine('centerLine', centerX, topY, centerX, boltBottomY);
+
+        const P = { x: centerX + intersectX, y: intersectY };  
+        const G = { x: centerX + sM/2, y: originY };          
+        const res2 = pointToSegmentDistance(P.x, P.y, centerX + sD/2, slopeStartY, centerX + sM/2, originY);
+        const res3_1 = pointToSegmentDistance(G.x, G.y, centerX + sd/2, topY, centerX + intersectX, intersectY);
+        const res3_2 = pointToSegmentDistance(G.x, G.y, centerX + intersectX, intersectY, centerX, tipY);
+        
+        let finalists = [{ dist: Math.sqrt((P.x-G.x)**2+(P.y-G.y)**2), x1:P.x, y1:P.y, x2:G.x, y2:G.y }];
+        if(res2) finalists.push({ dist: res2.distance, x1: P.x, y1: P.y, x2: res2.x, y2: res2.y });
+        if(res3_1) finalists.push({dist:res3_1.distance,x1:G.x,y1:G.y,x2:res3_1.x,y2:res3_1.y});
+        if(res3_2) finalists.push({dist:res3_2.distance,x1:G.x,y1:G.y,x2:res3_2.x,y2:res3_2.y});
+        const best = finalists.reduce((p,c) => p.dist < c.dist ? p : c);
+
+        const minThickValue = best.dist / scale;
+        document.getElementById('minThick').innerText = minThickValue.toFixed(3);
+        const pass = minThickValue >= 0.35;
+        const statusClass = pass ? "result-overlay status-success" : "result-overlay status-danger";
+        resultBox.className = statusBox.className = statusClass;
+        document.getElementById('checkText').innerText = pass ? 'PASS' : 'FAIL';
+        setLine('minThickLine', best.x1, best.y1, best.x2, best.y2);
+
+        const off = Math.max(sD/2, sd/2);
+        setDim('D', centerX - sD/2, centerX + sD/2, topY - 130, topY, `D = ${D.toFixed(2)} mm`);
+        setDim('d', centerX - sd/2, centerX + sd/2, topY - 60, topY, `d = ${d.toFixed(2)} mm`);
+        
+        const qX = centerX - off - 80, tX = centerX + off + 80;
+        setLine('dimQ', qX, topY, qX, intersectY);
+        setLine('extQ1', centerX - sd/2 - 5, topY, qX - 15, topY);
+        setLine('extQ2', centerX - Math.max(0, intersectX) - 5, intersectY, qX - 15, intersectY);
+        setText('lblQ', qX - 10, (topY + intersectY)/2 + 7, `Q = ${Q.toFixed(2)} mm`);
+        setLine('dimT', tX, topY, tX, originY);
+        setLine('extT1', centerX + sD/2 + 5, topY, tX + 15, topY);
+        setLine('extT2', centerX + sM/2 + 5, originY, tX + 15, originY);
+        setText('lblT', tX + 15, (topY + originY)/2 + 7, `T = ${T.toFixed(2)} mm`);
+        
+        const dimMY = boltBottomY + 40;
+        setLine('dimM', centerX - sM/2, dimMY, centerX + sM/2, dimMY);
+        setLine('extM1', centerX - sM/2, boltBottomY + 5, centerX - sM/2, dimMY + 15);
+        setLine('extM2', centerX + sM/2, boltBottomY + 5, centerX + sM/2, dimMY + 15);
+        setText('lblM', centerX, dimMY + 25, `M3`);
+
+        const arcR = 100, ax1 = centerX - sM/2 + arcR * Math.sin(halfARad), ay1 = originY + arcR * Math.cos(halfARad), ax2 = centerX + sM/2 - arcR * Math.sin(halfARad), ay2 = originY + arcR * Math.cos(halfARad);
+        setLine('refAL_dashed', centerX - sM/2, originY, ax1 + 30*Math.sin(halfARad), ay1 + 30*Math.cos(halfARad));
+        setLine('refAR_dashed', centerX + sM/2, originY, ax2 - 30*Math.sin(halfARad), ay2 + 30*Math.cos(halfARad));
+        document.getElementById('dimA').setAttribute('d', `M ${ax1} ${ay1} A ${arcR} ${arcR} 0 0 1 ${ax2} ${ay2}`);
+        setText('lblA', centerX, originY + arcR + 35, `A = ${A_deg.toFixed(1)}°`);
+
+        const minX = Math.min(centerX - sD/2 - 200, qX - 150), maxX = Math.max(centerX + sD/2 + 200, tX + 150);
+        document.getElementById('svgBolt').setAttribute('viewBox', `${minX} ${topY-180} ${maxX - minX} ${boltBottomY - topY + 350}`);
+    }
+
+    function setDim(id, x1, x2, y, refY, label) {
+        setLine(`dim${id}`, x1, y, x2, y);
+        setLine(`ext${id}1`, x1, refY - 5, x1, y - 25);
+        setLine(`ext${id}2`, x2, refY - 5, x2, y - 25);
+        setText(`lbl${id}`, (x1+x2)/2, y - 15, label);
+    }
+    function setLine(id, x1, y1, x2, y2) {
+        const el = document.getElementById(id);
+        if(el) { el.setAttribute('x1', x1); el.setAttribute('y1', y1); el.setAttribute('x2', x2); el.setAttribute('y2', y2); }
+    }
+    function setText(id, x, y, val) {
+        const el = document.getElementById(id);
+        if(el) { el.setAttribute('x', x); el.setAttribute('y', y); if(val) el.textContent = val; }
+    }
+</script>
+
+</body>
+</html>

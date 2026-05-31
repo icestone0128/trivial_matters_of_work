@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torx / F頭 版本</title>
+    <style>
+        :root {
+            --primary-color: #00a854;
+            --secondary-color: #ff4d4f;
+            --bg-color: #f0f2f5;
+            --panel-bg: #ffffff;
+            --warning-bg: #fffbe6;
+            --warning-border: #ffe58f;
+            --warning-text: #856404; /* 調整為深褐色 */
+        }
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        .container { 
+            background: var(--panel-bg); 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 1200px; 
+        }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        
+        .control-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 20px; 
+            background: #f9f9f9; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+        }
+        .control-item { display: flex; flex-direction: column; gap: 8px; }
+        .label-row { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 14px; }
+        .input-group { display: flex; gap: 10px; align-items: center; }
+        input[type=number] { width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; }
+        input[type=range] { flex: 1; cursor: pointer; }
+        select { padding: 6px; flex:1; border-radius:4px; border: 1px solid #ccc; }
+
+        /* 比照上圖設計的提醒標語樣式 */
+        .notice-banner {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 10px; /* 增加一點圓角 */
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--warning-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .info-display { 
+            display: flex; 
+            justify-content: center; 
+            gap: 20px; 
+            margin-bottom: 20px; 
+        }
+        .result-overlay {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .status-danger { background: #fff1f0; border-color: var(--secondary-color); color: #cf1322; }
+        .status-success { background: #f6ffed; border-color: var(--primary-color); color: #389e0d; }
+
+        .limit-hint { color: var(--secondary-color); font-size: 12px; font-weight: normal; }
+
+        .drawing-area { 
+            width: 100%; 
+            height: 650px; 
+            background: #ffffff; 
+            border: 1px solid #eeeeee; 
+            border-radius: 8px; 
+            position: relative; 
+            overflow: auto; 
+        }
+        svg { width: 100%; height: 100%; display: block; }
+
+        .bolt-path { fill: #e6e6e6; stroke: #333; stroke-width: 1.5; }
+        .slot-path { fill: #ffffff; stroke: #333; stroke-width: 1.5; }
+
+        .dim-line { stroke: var(--primary-color); stroke-width: 1.5; fill: none; }
+        .dim-line-dashed { stroke: var(--primary-color); stroke-width: 1.5; stroke-dasharray: 4,4; fill: none; }
+        .ext-line { stroke: var(--primary-color); stroke-width: 1; stroke-opacity: 0.6; }
+        .aux-line { stroke: #666; stroke-width: 1; stroke-dasharray: 8,4,2,4; }
+        .label-text { font-size: 18px; font-weight: bold; fill: #000; }
+        .angle-arc { stroke: var(--primary-color); stroke-width: 2; fill: none; }
+        .min-dist-line { stroke: var(--secondary-color); stroke-width: 3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Torx / F頭 版本</h2>
+
+    <div class="control-grid">
+        <div class="control-item">
+            <div class="label-row">
+                <label>d (槽型):</label>
+                <span id="vald_txt">T10</span>
+            </div>
+            <div class="input-group">
+                <select id="selectd">
+                    <option value="1.75">T6 (1.75 mm)</option>
+                    <option value="2.40">T8 (2.40 mm)</option>
+                    <option value="2.80" selected>T10 (2.80 mm)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-item">
+            <div class="label-row"><label>D (頭徑):</label><span id="valD_txt">5.00 mm</span></div>
+            <div class="input-group">
+                <input type="number" id="numD" step="0.01" value="5.00" min="3.1" max="10.0">
+                <input type="range" id="rangeD" min="3.1" max="10.0" step="0.01" value="5.00">
+            </div>
+        </div>
+
+        <div class="control-item">
+            <div class="label-row"><label>T (頭厚):</label><span id="valT_txt">1.00 mm</span></div>
+            <div class="input-group">
+                <input type="number" id="numT" step="0.01" value="1.00" min="0.5" max="1.5">
+                <input type="range" id="rangeT" min="0.5" max="1.5" step="0.01" value="1.00">
+            </div>
+        </div>
+
+        <div class="control-item">
+            <div class="label-row"><label>Q (槽深):</label><span id="valQ_txt">0.70 mm</span></div>
+            <div class="input-group">
+                <input type="number" id="numQ" step="0.01" value="0.70" min="0.3" max="1.0">
+                <input type="range" id="rangeQ" min="0.3" max="1.0" step="0.01" value="0.70">
+            </div>
+        </div>
+
+        <div class="control-item">
+            <div class="label-row">
+                <label>A (角度):</label>
+                <span><span id="limitHint" class="limit-hint"></span> <span id="valA_txt">100°</span></span>
+            </div>
+            <div class="input-group">
+                <input type="number" id="numA" step="1" value="100" min="10" max="179">
+                <input type="range" id="rangeA" min="10" max="179" step="1" value="100">
+            </div>
+        </div>
+    </div>
+
+    <!-- 標語區塊：比照上圖更新樣式與文字顏色 -->
+    <div class="notice-banner">
+        <span>⚠️</span>
+        設計提醒：<strong>Torx</strong>槽深(Q)尺寸因廠商不同而異，設計時請確認實際Q值。
+    </div>
+
+    <div class="info-display">
+        <div id="resultBox" class="result-overlay status-danger">
+            最小肉厚 (紅實線): <span id="minDistVal">0.316</span> mm
+        </div>
+        <div id="statusBox" class="result-overlay status-danger">
+            Check Min. Wall Thickness (≥ 0.35 mm): <span id="statusText">FAIL</span>
+        </div>
+    </div>
+
+    <div class="drawing-area">
+        <svg id="svgBolt" viewBox="0 0 1000 650" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <marker id="arrow-A-start" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                    <polygon points="10 0, 0 3.5, 10 7" fill="var(--primary-color)" />
+                </marker>
+                <marker id="arrow-A-end" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="var(--primary-color)" />
+                </marker>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="var(--primary-color)" />
+                </marker>
+                <marker id="arrowhead-reverse" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                    <polygon points="10 0, 0 3.5, 10 7" fill="var(--primary-color)" />
+                </marker>
+            </defs>
+            
+            <path id="boltShape" class="bolt-path" />
+            <path id="slotShape" class="slot-path" />
+            <line id="centerLine" class="aux-line" />
+            <line id="refAL_dashed" class="dim-line-dashed" />
+            <line id="refAR_dashed" class="dim-line-dashed" />
+            <path id="dimA" class="angle-arc" marker-start="url(#arrow-A-start)" marker-end="url(#arrow-A-end)" />
+            <text id="lblA" class="label-text" text-anchor="middle">A</text>
+            <line id="minWallLine" class="min-dist-line" />
+
+            <g id="dimensions">
+                <line id="dimD" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extD1" class="ext-line" /><line id="extD2" class="ext-line" />
+                <text id="lblD" class="label-text" text-anchor="middle">D</text>
+
+                <line id="dimd" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extd1" class="ext-line" /><line id="extd2" class="ext-line" />
+                <text id="lbld" class="label-text" text-anchor="middle">d</text>
+
+                <line id="dimQ" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extQ1" class="ext-line" /><line id="extQ2" class="ext-line" />
+                <text id="lblQ" class="label-text" text-anchor="end">Q</text>
+
+                <line id="dimT" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extT1" class="ext-line" /><line id="extT2" class="ext-line" />
+                <text id="lblT" class="label-text">T</text>
+
+                <line id="dimM" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extM1" class="ext-line" /><line id="extM2" class="ext-line" />
+                <text id="lblM" class="label-text" text-anchor="middle">M3</text>
+            </g>
+        </svg>
+    </div>
+</div>
+
+<script>
+    const scale = 90; 
+    const originY = 320; 
+    const M_mm = 3.00;
+
+    function draw() {
+        const numA = document.getElementById('numA');
+        const rangeA = document.getElementById('rangeA');
+        const numD = document.getElementById('numD');
+        const numT = document.getElementById('numT');
+        const numQ = document.getElementById('numQ');
+        const selectd = document.getElementById('selectd');
+        const svg = document.getElementById('svgBolt');
+        
+        const minDistValEl = document.getElementById('minDistVal');
+        const resultBox = document.getElementById('resultBox');
+        const statusBox = document.getElementById('statusBox');
+        const statusText = document.getElementById('statusText');
+
+        let A = parseFloat(numA.value) || 0;
+        const D_val = parseFloat(numD.value) || 0;
+        const T_val = parseFloat(numT.value) || 0;
+        const Q_val = parseFloat(numQ.value) || 0;
+        const d_val = parseFloat(selectd.value);
+
+        const neededWidth = (D_val * scale) + 400; 
+        const viewBoxWidth = Math.max(1000, neededWidth);
+        const centerX = viewBoxWidth / 2;
+        svg.setAttribute('viewBox', `0 0 ${viewBoxWidth} 650`);
+
+        const limitHint = document.getElementById('limitHint');
+        const minHalfARad = Math.atan((D_val - M_mm) / (2 * T_val));
+        const minA = Math.ceil((minHalfARad * 2 * 180 / Math.PI));
+        
+        if (A < minA) {
+            A = minA;
+            limitHint.innerText = "(幾何限制)";
+            numA.value = A; 
+            rangeA.value = A;
+        } else {
+            limitHint.innerText = "";
+        }
+
+        document.getElementById('valA_txt').innerText = A + '°';
+        document.getElementById('valD_txt').innerText = D_val.toFixed(2) + ' mm';
+        document.getElementById('valT_txt').innerText = T_val.toFixed(2) + ' mm';
+        document.getElementById('valQ_txt').innerText = Q_val.toFixed(2) + ' mm';
+        document.getElementById('vald_txt').innerText = selectd.options[selectd.selectedIndex].text.split(' ')[0];
+
+        const sD = D_val * scale, sT = T_val * scale, sQ = Q_val * scale, sM = M_mm * scale, sd = d_val * scale;
+        const topY = originY - sT;
+        const bottomY = originY + 200; 
+        const halfARad = (A/2) * Math.PI / 180;
+        
+        const slopeHalfWidth = (sD - sM) / 2;
+        const slopeHeightReq = slopeHalfWidth / Math.tan(halfARad);
+        const verticalPartHeight = Math.max(0, sT - slopeHeightReq);
+        const slopeEndY = topY + verticalPartHeight;
+
+        const boltPathStr = `M ${centerX - sD/2},${topY} L ${centerX - sD/2},${slopeEndY} L ${centerX - sM/2},${originY} L ${centerX - sM/2},${bottomY} L ${centerX + sM/2},${bottomY} L ${centerX + sM/2},${originY} L ${centerX + sD/2},${slopeEndY} L ${centerX + sD/2},${topY} Z`;
+        document.getElementById('boltShape').setAttribute('d', boltPathStr);
+
+        const slotPathStr = `M ${centerX - sd/2},${topY} L ${centerX - sd/2},${topY + sQ} L ${centerX},${topY + sQ + (sd/2)*Math.tan(20*Math.PI/180)} L ${centerX + sd/2},${topY + sQ} L ${centerX + sd/2},${topY} Z`;
+        document.getElementById('slotShape').setAttribute('d', slotPathStr);
+
+        setLine('centerLine', centerX, topY, centerX, bottomY);
+        const neckLX = centerX - sM/2, neckRX = centerX + sM/2;
+        const arcR = 90, extLen = 40;
+        const lx2 = neckLX + (arcR + extLen) * Math.sin(halfARad), ly2 = originY + (arcR + extLen) * Math.cos(halfARad);
+        setLine('refAL_dashed', neckLX, originY, lx2, ly2);
+        const rx2 = neckRX - (arcR + extLen) * Math.sin(halfARad), ry2 = originY + (arcR + extLen) * Math.cos(halfARad);
+        setLine('refAR_dashed', neckRX, originY, rx2, ry2);
+        const ax1 = neckLX + arcR * Math.sin(halfARad), ay1 = originY + arcR * Math.cos(halfARad);
+        const ax2 = neckRX - arcR * Math.sin(halfARad), ay2 = originY + arcR * Math.cos(halfARad);
+        document.getElementById('dimA').setAttribute('d', `M ${ax1} ${ay1} A ${arcR} ${arcR} 0 0 1 ${ax2} ${ay2} mm`);
+        setText('lblA', centerX, originY + arcR + 30, `A = ${A}°`);
+
+        setLine('dimD', centerX-sD/2, topY-110, centerX+sD/2, topY-110);
+        setLine('extD1', centerX-sD/2, topY-5, centerX-sD/2, topY-125);
+        setLine('extD2', centerX+sD/2, topY-5, centerX+sD/2, topY-125);
+        setText('lblD', centerX, topY-125, `D = ${D_val.toFixed(2)} mm`);
+
+        setLine('dimd', centerX-sd/2, topY-60, centerX+sd/2, topY-60);
+        setLine('extd1', centerX-sd/2, topY-5, centerX-sd/2, topY-75);
+        setLine('extd2', centerX+sd/2, topY-5, centerX+sd/2, topY-75);
+        setText('lbld', centerX, topY-75, `d = ${d_val.toFixed(2)} mm`);
+
+        const qX = centerX - Math.max(sD/2, sd/2) - 60;
+        setLine('dimQ', qX, topY, qX, topY + sQ);
+        setLine('extQ1', centerX - sd/2 - 5, topY, qX - 15, topY);
+        setLine('extQ2', centerX - sd/2 - 5, topY + sQ, qX - 15, topY + sQ);
+        setText('lblQ', qX - 10, topY + sQ/2 + 7, `Q = ${Q_val.toFixed(2)} mm`);
+
+        const tX = centerX + sD/2 + 70;
+        setLine('dimT', tX, topY, tX, originY);
+        setLine('extT1', centerX + sD/2 + 5, topY, tX + 15, topY);
+        setLine('extT2', neckRX + 5, originY, tX + 15, originY);
+        setText('lblT', tX + 15, (topY + originY)/2 + 7, `T = ${T_val.toFixed(2)} mm`);
+
+        setLine('dimM', neckLX, bottomY+40, neckRX, bottomY+40);
+        setLine('extM1', neckLX, bottomY+5, neckLX, bottomY+55);
+        setLine('extM2', neckRX, bottomY+5, neckRX, bottomY+55);
+        setText('lblM', centerX, bottomY+75, `M3`);
+
+        let finalDist, startPt, endPt;
+        if (Q_val > T_val) {
+            finalDist = (sd/2 - sM/2);
+            startPt = { x: centerX + sd/2, y: originY }; endPt = { x: centerX + sM/2, y: originY };        
+        } else {
+            const tipPt = { x: sd/2, y: -(sT - sQ) };
+            const p1 = { x: sM/2, y: 0 }, p2 = { x: sD/2, y: -(sT - verticalPartHeight) };
+            const dx = p2.x - p1.x, dy = p2.y - p1.y, l2 = dx*dx + dy*dy;
+            const t_param = l2 === 0 ? 0 : Math.max(0, Math.min(1, ((tipPt.x - p1.x) * dx + (tipPt.y - p1.y) * dy) / l2));
+            const proj = { x: p1.x + t_param * dx, y: p1.y + t_param * dy };
+            finalDist = Math.hypot(tipPt.x - proj.x, tipPt.y - proj.y);
+            startPt = { x: centerX + tipPt.x, y: originY + tipPt.y };
+            endPt = { x: centerX + proj.x, y: originY + proj.y };
+        }
+        
+        const wallThickness = Math.abs(finalDist / scale);
+        minDistValEl.innerText = wallThickness.toFixed(3);
+        setLine('minWallLine', startPt.x, startPt.y, endPt.x, endPt.y);
+
+        const isPass = wallThickness >= 0.35;
+        statusText.innerText = isPass ? "PASS" : "FAIL";
+        resultBox.className = "result-overlay " + (isPass ? "status-success" : "status-danger");
+        statusBox.className = "result-overlay " + (isPass ? "status-success" : "status-danger");
+    }
+
+    function setLine(id, x1, y1, x2, y2) {
+        const el = document.getElementById(id);
+        el.setAttribute('x1', x1); el.setAttribute('y1', y1);
+        el.setAttribute('x2', x2); el.setAttribute('y2', y2);
+    }
+    function setText(id, x, y, val) {
+        const el = document.getElementById(id);
+        el.setAttribute('x', x); el.setAttribute('y', y);
+        if(val !== undefined) el.textContent = val;
+    }
+
+    const ids = ['A', 'D', 'T', 'Q'];
+    ids.forEach(id => {
+        const num = document.getElementById(`num${id}`);
+        const ran = document.getElementById(`range${id}`);
+
+        num.addEventListener('change', () => {
+            let val = parseFloat(num.value);
+            const min = parseFloat(num.min);
+            const max = parseFloat(num.max);
+
+            if (isNaN(val)) val = min;
+            if (val < min) val = min;
+            if (val > max) val = max;
+
+            num.value = val.toFixed(id === 'A' ? 0 : 2);
+            ran.value = val;
+            draw();
+        });
+
+        ran.addEventListener('input', () => {
+            num.value = ran.value;
+            draw();
+        });
+    });
+
+    document.getElementById('selectd').addEventListener('change', draw);
+    window.onload = draw;
+</script>
+
+</body>
+</html>
