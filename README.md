@@ -22,7 +22,7 @@
 - Firebase：使用 Firebase Hosting
 - 部署：
   - GitHub Pages：`https://icestone0128.github.io/trivial_matters_of_work/`
-  - Firebase Hosting：`https://codex-4e80b.web.app/`
+  - Firebase Hosting：`https://design-tool-63582.web.app/`
 
 ## Obsidian 駕駛艙
 
