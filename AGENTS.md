@@ -5,11 +5,11 @@
 - 專案名稱：`trivial_matters_of_work`
 - 專案用途：記錄和執行工作上的一些任務。
 - 工作資料夾：`/Users/arrywu/Library/CloudStorage/GoogleDrive-icestone0128@gmail.com/我的雲端硬碟/trivial_matters_of_work`
-- GitHub repo：`icestone0128/trivial_matters_of_work`，私有 repo。
+- GitHub repo：`icestone0128/trivial_matters_of_work`，公開 repo。
 - 預設分支：`main`
-- GitHub Pages：未使用。
-- Firebase：未使用。
-- 部署：目前不部署。
+- GitHub Pages：已使用，來源為 `main` 分支 `/docs`。
+- Firebase：已使用 Firebase Hosting 作為另一份靜態部署。
+- 部署：GitHub Pages 與 Firebase Hosting。
 
 ## Obsidian 駕駛艙
 

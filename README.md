@@ -17,10 +17,12 @@
 ## 專案設定
 
 - GitHub repo：`icestone0128/trivial_matters_of_work`
-- Repo 類型：私有
-- GitHub Pages：不使用
-- Firebase：不使用
-- 部署：目前不部署
+- Repo 類型：公開
+- GitHub Pages：使用 `main` 分支 `/docs`
+- Firebase：使用 Firebase Hosting
+- 部署：
+  - GitHub Pages：`https://icestone0128.github.io/trivial_matters_of_work/`
+  - Firebase Hosting：`https://codex-4e80b.web.app/`
 
 ## Obsidian 駕駛艙
 
