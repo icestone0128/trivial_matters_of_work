@@ -38,6 +38,8 @@
         .header { background-color: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; z-index: 10; position: relative;}
         .header h1 { font-size: 1.25rem; font-weight: 600; margin: 0; }
         .header-controls { display: flex; gap: 1rem; align-items: center;}
+        .back-to-form { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 0 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.85); color: white; background: transparent; font-size: 0.875rem; font-weight: 700; text-decoration: none; white-space: nowrap; transition: all 0.2s; }
+        .back-to-form:hover { background: white; color: var(--primary); }
 
         /* App Body & Sidebar Layout */
         .app-body { display: flex; flex-direction: row; min-height: calc(100vh - 64px); align-items: stretch; }
@@ -193,6 +195,7 @@
                     <option value="metric_kg">單位: mm, kg</option>
                     <option value="imperial">單位: in, lb</option>
                 </select>
+                <a class="back-to-form" href="../">返回表單</a>
             </div>
         </header>
 

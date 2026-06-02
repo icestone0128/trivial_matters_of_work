@@ -208,6 +208,29 @@
             background: white;
         }
 
+        .back-to-form {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0 16px;
+            border-radius: 6px;
+            border: 1px solid var(--qct-blue);
+            color: var(--qct-blue);
+            background: #fff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all var(--transition-speed);
+            white-space: nowrap;
+        }
+
+        .back-to-form:hover {
+            background: var(--qct-blue);
+            color: #fff;
+            box-shadow: 0 6px 15px rgba(0, 75, 152, 0.18);
+        }
+
         .content-body {
             flex: 1;
             margin: 0 40px 40px 40px;
@@ -352,7 +375,7 @@
 
         <header class="content-header">
             <h2>螺絲肉厚檢查系統 <span style="font-weight: 300; font-size: 0.9rem; color: #999; margin-left: 10px;">v1.0</span></h2>
-            <div style="text-align: right"></div>
+            <a class="back-to-form" href="../">返回表單</a>
         </header>
 
         <section class="content-body" id="mainStage">
