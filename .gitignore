@@ -26,3 +26,6 @@ venv/
 *.log
 *.tmp
 *.swp
+
+# Local Netlify folder
+.netlify
