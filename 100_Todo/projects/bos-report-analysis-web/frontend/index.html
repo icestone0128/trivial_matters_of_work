@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FMD and Approval Status Summary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>FMD and Approval Status Summary</h1>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel input-panel" id="input-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>新增 / 更新專案</h2>
+          <p>貼上 Excel「Summary」工作表 B2:F6，Project Name 相同時會直接覆蓋。</p>
+        </div>
+      </div>
+
+      <form id="project-form">
+        <label class="field">
+          <span>Project Name</span>
+          <input id="project-name" type="text" autocomplete="off" required placeholder="例如：S8L">
+        </label>
+
+        <label class="field">
+          <span>Summary!B2:F6</span>
+          <textarea id="summary-input" required spellcheck="false" placeholder="Sort	Part Quantity	FMD Applying	FMD Released	Approved
+ME Single	583	21	513	192
+Packing Single	57	3	46	24
+Assy	90	1	85	5
+Total	730	25	644	221"></textarea>
+          <span class="field-hint">需包含 5 欄：Sort、Part Quantity、FMD Applying、FMD Released、Approved。</span>
+        </label>
+
+        <div class="form-actions">
+          <button type="button" id="preview-btn" class="secondary-btn">預覽</button>
+          <button type="submit" class="primary-btn">提交</button>
+        </div>
+        <p id="form-message" class="form-message" role="status"></p>
+      </form>
+    </section>
+
+    <section class="panel single-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>當次單筆輸入</h2>
+          <p id="current-project-label">尚未選取專案</p>
+        </div>
+      </div>
+      <div id="single-summary" class="summary-table-wrap"></div>
+    </section>
+
+    <section class="panel records-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>總表</h2>
+          <p>過往輸入紀錄，可選取查看或刪除單筆專案。</p>
+        </div>
+        <div class="panel-tools">
+          <span id="record-count" class="count-pill">0 筆</span>
+          <button id="export-btn" class="secondary-btn" type="button">Export XLSX</button>
+        </div>
+      </div>
+      <div id="record-list" class="record-list"></div>
+    </section>
+
+    <section class="panel aggregate-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>所有機種累計</h2>
+          <p>由 Apps Script 資料庫取得全部專案後加總。</p>
+        </div>
+        <button id="export-png-btn" class="secondary-btn" type="button" data-html2canvas-ignore="true">Export PNG</button>
+      </div>
+      <div id="aggregate-pies" class="pie-grid"></div>
+      <div id="aggregate-summary" class="summary-table-wrap"></div>
+      <div id="aggregate-charts" class="chart-grid"></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
