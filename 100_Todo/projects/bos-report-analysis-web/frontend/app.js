@@ -457,16 +457,16 @@ function renderPiePanel(label, key, className, totals) {
           class="pie-bubble ${className}"
           title="${escapeAttr(`Total Part Quality: ${formatNumber(totalPartQuantity)}`)}"
         >
-          <canvas class="pie-canvas" width="216" height="216" data-pie="${escapeAttr(JSON.stringify(segments.items))}"></canvas>
+          <canvas class="pie-canvas" width="216" height="216" data-pie="${escapeAttr(JSON.stringify(segments.canvasSegments))}"></canvas>
           <span class="pie-center"><small>Total</small><strong>${formatNumber(totalPartQuantity)}</strong></span>
         </div>
         <div class="pie-legend">
-          ${segments.items.map(item => `
+          ${segments.legendItems.map(item => `
             <div class="legend-row">
               <span class="legend-swatch" style="background: ${item.color};"></span>
-              <strong>${escapeHtml(item.projectName)}</strong>
-              <span>${item.percent.toFixed(1)}%</span>
-              <span>${formatNumber(item.value)}</span>
+              <strong>${escapeHtml(item.projectName)} ${item.completedSharePercent.toFixed(1)}%</strong>
+              <span class="legend-separator">|</span>
+              <span>${formatNumber(item.completedValue)}/${formatNumber(item.partQuantity)} (${item.completionPercent.toFixed(1)}%)</span>
             </div>
           `).join('')}
         </div>
@@ -479,27 +479,43 @@ function buildPieSegments(totals, key) {
   const colors = ['#0072ce', '#27a278', '#f4a340', '#7b61ff', '#c94b4b', '#17a2b8', '#8a6f3d', '#5a7d9a'];
   const totalPartQuantity = totals.reduce((sum, item) => sum + toNumber(item.total.partQuantity), 0);
   let cursor = 0;
-  const items = totals.map((item, index) => {
-    const value = toNumber(item.total[key]);
-    const percent = totalPartQuantity > 0 ? (value / totalPartQuantity) * 100 : 0;
+  
+  const canvasSegments = [];
+  const legendItems = [];
+  
+  totals.forEach((item, index) => {
+    const partQuantity = toNumber(item.total.partQuantity);
+    const completedValue = toNumber(item.total[key]);
+    
+    const darkColor = colors[index % colors.length];
+    
+    const completedSharePercent = totalPartQuantity > 0 ? (completedValue / totalPartQuantity) * 100 : 0;
+    const completionPercent = partQuantity > 0 ? (completedValue / partQuantity) * 100 : 0;
+    
     const start = cursor;
-    cursor += percent;
-    return {
+    cursor += completedSharePercent;
+    const end = cursor;
+    
+    if (completedSharePercent > 0) {
+      canvasSegments.push({
+        percent: completedSharePercent,
+        color: darkColor,
+        start,
+        end
+      });
+    }
+    
+    legendItems.push({
       projectName: item.projectName,
-      value,
-      percent,
-      color: colors[index % colors.length],
-      start,
-      end: cursor
-    };
+      completedValue,
+      partQuantity,
+      completedSharePercent,
+      completionPercent,
+      color: darkColor
+    });
   });
-
-  const filledSegments = items.map(item => `${item.color} ${item.start.toFixed(2)}% ${item.end.toFixed(2)}%`);
-  const gradient = items.length && totalPartQuantity > 0
-    ? [...filledSegments, `#e6eef5 ${cursor.toFixed(2)}% 100%`].join(', ')
-    : '#e6eef5 0% 100%';
-  const totalValue = items.reduce((sum, item) => sum + item.value, 0);
-  return { gradient, items, totalValue };
+  
+  return { canvasSegments, legendItems };
 }
 
 function renderPieCanvases() {
