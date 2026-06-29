@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torx / I頭 版本</title>
+    <style>
+        :root {
+            --primary-color: #00a854;
+            --secondary-color: #ff4d4f;
+            --bg-color: #f0f2f5;
+            --panel-bg: #ffffff;
+            --warning-bg: #fffbe6;
+            --warning-border: #ffe58f;
+            --warning-text: #856404;
+        }
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        .container { 
+            background: var(--panel-bg); 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 1200px; 
+        }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        
+        .control-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 20px; 
+            background: #f9f9f9; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+        }
+        .control-item { display: flex; flex-direction: column; gap: 8px; }
+        .label-row { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 14px; }
+        .input-group { display: flex; gap: 10px; align-items: center; }
+        input[type=number] { width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; }
+        input[type=range] { flex: 1; cursor: pointer; }
+        select { padding: 6px; flex:1; border-radius:4px; border: 1px solid #ccc; }
+
+        /* 提醒標語樣式 */
+        .notice-banner {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 10px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--warning-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .info-display { 
+            display: flex; 
+            justify-content: center; 
+            gap: 20px; 
+            margin-bottom: 20px; 
+        }
+        .result-overlay {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .status-danger { background: #fff1f0; border-color: var(--secondary-color); color: #cf1322; }
+        .status-success { background: #f6ffed; border-color: var(--primary-color); color: #389e0d; }
+
+        .drawing-area { 
+            width: 100%; 
+            height: 650px; 
+            background: #ffffff; 
+            border: 1px solid #eeeeee; 
+            border-radius: 8px; 
+            position: relative; 
+            overflow: auto; 
+        }
+        svg { width: 100%; height: 100%; display: block; }
+
+        .bolt-path { fill: #e6e6e6; stroke: #333; stroke-width: 1.5; }
+        .slot-path { fill: #ffffff; stroke: #333; stroke-width: 1.5; }
+
+        .dim-line { stroke: var(--primary-color); stroke-width: 1.5; fill: none; }
+        .ext-line { stroke: var(--primary-color); stroke-width: 1; stroke-opacity: 0.6; }
+        .aux-line { stroke: #666; stroke-width: 1; stroke-dasharray: 8,4,2,4; }
+        .label-text { font-size: 18px; font-weight: bold; fill: #000; }
+        .min-dist-line { stroke: var(--secondary-color); stroke-width: 3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Torx / I頭 版本</h2>
+
+    <div class="control-grid">
+        <div class="control-item">
+            <div class="label-row">
+                <label>d (槽型):</label>
+                <span id="vald_txt">T10</span>
+            </div>
+            <div class="input-group">
+                <select id="selectd">
+                    <option value="1.75" data-name="T6">T6 (1.75 mm)</option>
+                    <option value="2.40" data-name="T8">T8 (2.40 mm)</option>
+                    <option value="2.80" data-name="T10" selected>T10 (2.80 mm)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-item">
+            <div class="label-row"><label>D (頭徑):</label><span id="valD_txt">5.00 mm</span></div>
+            <div class="input-group">
+                <input type="number" id="numD" step="0.01" value="5.00" min="3.1" max="10.0">
+                <input type="range" id="rangeD" min="3.1" max="10.0" step="0.01" value="5.00">
+            </div>
+        </div>
+
+        <div class="control-item">
+            <div class="label-row"><label>T (頭厚):</label><span id="valT_txt">1.00 mm</span></div>
+            <div class="input-group">
+                <input type="number" id="numT" step="0.01" value="1.00" min="0.5" max="1.5">
+                <input type="range" id="rangeT" min="0.5" max="1.5" step="0.01" value="1.00">
+            </div>
+        </div>
+
+        <div class="control-item">
+            <div class="label-row"><label>Q (槽深):</label><span id="valQ_txt">0.70 mm</span></div>
+            <div class="input-group">
+                <input type="number" id="numQ" step="0.01" value="0.70" min="0.3" max="1.0">
+                <input type="range" id="rangeQ" min="0.3" max="1.0" step="0.01" value="0.70">
+            </div>
+        </div>
+    </div>
+
+    <!-- 提醒標語區塊 -->
+    <div class="notice-banner">
+        <span>⚠️</span>
+        設計提醒：<strong>Torx</strong> 槽深(Q)尺寸因廠商不同而異，設計時請確認實際Q值。
+    </div>
+
+    <div class="info-display">
+        <div id="resultBox" class="result-overlay status-danger">
+            最小肉厚 (紅實線): <span id="minDistVal">0.316</span> mm
+        </div>
+        <div id="statusBox" class="result-overlay status-danger">
+            Check Min. Wall Thickness (≥ 0.35 mm): <span id="statusText">FAIL</span>
+        </div>
+    </div>
+
+    <div class="drawing-area">
+        <svg id="svgBolt" viewBox="0 0 1000 650" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="var(--primary-color)" />
+                </marker>
+                <marker id="arrowhead-reverse" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                    <polygon points="10 0, 0 3.5, 10 7" fill="var(--primary-color)" />
+                </marker>
+            </defs>
+            
+            <path id="boltShape" class="bolt-path" />
+            <path id="slotShape" class="slot-path" />
+            <line id="centerLine" class="aux-line" />
+            <line id="minWallLine" class="min-dist-line" />
+
+            <g id="dimensions">
+                <line id="dimD" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extD1" class="ext-line" /><line id="extD2" class="ext-line" />
+                <text id="lblD" class="label-text" text-anchor="middle">D</text>
+
+                <line id="dimd" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extd1" class="ext-line" /><line id="extd2" class="ext-line" />
+                <text id="lbld" class="label-text" text-anchor="middle">d</text>
+
+                <line id="dimQ" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extQ1" class="ext-line" /><line id="extQ2" class="ext-line" />
+                <text id="lblQ" class="label-text" text-anchor="end">Q</text>
+
+                <line id="dimT" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extT1" class="ext-line" /><line id="extT2" class="ext-line" />
+                <text id="lblT" class="label-text">T</text>
+
+                <line id="dimM" class="dim-line" marker-start="url(#arrowhead-reverse)" marker-end="url(#arrowhead)" />
+                <line id="extM1" class="ext-line" /><line id="extM2" class="ext-line" />
+                <text id="lblM" class="label-text" text-anchor="middle">M3</text>
+            </g>
+        </svg>
+    </div>
+</div>
+
+<script>
+    const scale = 80; 
+    const startY = 220; 
+    const shankW_mm = 3.0;
+
+    function draw() {
+        const numD = document.getElementById('numD');
+        const rangeD = document.getElementById('rangeD');
+        const numT = document.getElementById('numT');
+        const rangeT = document.getElementById('rangeT');
+        const numQ = document.getElementById('numQ');
+        const rangeQ = document.getElementById('rangeQ');
+        const selectd = document.getElementById('selectd');
+        const svg = document.getElementById('svgBolt');
+        
+        const minDistValEl = document.getElementById('minDistVal');
+        const resultBox = document.getElementById('resultBox');
+        const statusBox = document.getElementById('statusBox');
+        const statusText = document.getElementById('statusText');
+
+        const valD = parseFloat(numD.value) || 3.1;
+        const valT = parseFloat(numT.value) || 0.5;
+        const valQ = parseFloat(numQ.value) || 0.1;
+        const vald = parseFloat(selectd.value);
+
+        const neededWidth = (valD * scale) + 400; 
+        const viewBoxWidth = Math.max(1000, neededWidth);
+        const centerX = viewBoxWidth / 2;
+        svg.setAttribute('viewBox', `0 0 ${viewBoxWidth} 650`);
+
+        document.getElementById('valD_txt').innerText = valD.toFixed(2) + ' mm';
+        document.getElementById('valT_txt').innerText = valT.toFixed(2) + ' mm';
+        document.getElementById('valQ_txt').innerText = valQ.toFixed(2) + ' mm';
+        document.getElementById('vald_txt').innerText = selectd.options[selectd.selectedIndex].getAttribute('data-name');
+
+        const D = valD * scale, d = vald * scale, Q = valQ * scale, T = valT * scale;
+        const shankW = shankW_mm * scale;
+        const headBottomY = startY + T;
+        const shankBottomY = headBottomY + 200;
+        const angleRad = 20 * Math.PI / 180;
+        const triDepth = (d/2) * Math.tan(angleRad);
+
+        // 螺絲形狀
+        const outer = `M ${centerX-D/2},${startY} L ${centerX+D/2},${startY} L ${centerX+D/2},${headBottomY} L ${centerX+shankW/2},${headBottomY} L ${centerX+shankW/2},${shankBottomY} L ${centerX-shankW/2},${shankBottomY} L ${centerX-shankW/2},${headBottomY} L ${centerX-D/2},${headBottomY} Z`;
+        const inner = `M ${centerX-d/2},${startY} L ${centerX-d/2},${startY+Q} L ${centerX},${startY+Q+triDepth} L ${centerX+d/2},${startY+Q} L ${centerX+d/2},${startY} Z`;
+        document.getElementById('boltShape').setAttribute('d', outer);
+        document.getElementById('slotShape').setAttribute('d', inner);
+
+        setLine('centerLine', centerX, startY, centerX, shankBottomY);
+
+        // 尺寸標註
+        setLine('dimD', centerX-D/2, startY-130, centerX+D/2, startY-130);
+        setLine('extD1', centerX-D/2, startY-5, centerX-D/2, startY-155);
+        setLine('extD2', centerX+D/2, startY-5, centerX+D/2, startY-155);
+        setText('lblD', centerX, startY-145, `D = ${valD.toFixed(2)} mm`);
+
+        setLine('dimd', centerX-d/2, startY-60, centerX+d/2, startY-60);
+        setLine('extd1', centerX-d/2, startY-5, centerX-d/2, startY-85);
+        setLine('extd2', centerX+d/2, startY-5, centerX+d/2, startY-85);
+        setText('lbld', centerX, startY-75, `d = ${vald.toFixed(2)} mm`);
+
+        const qOffset = Math.max(D/2, d/2) + 60;
+        setLine('dimQ', centerX-qOffset, startY, centerX-qOffset, startY+Q);
+        setLine('extQ1', centerX-d/2-5, startY, centerX-qOffset-15, startY);
+        setLine('extQ2', centerX-d/2-5, startY+Q, centerX-qOffset-15, startY+Q);
+        setText('lblQ', centerX-qOffset-10, startY+Q/2+7, `Q = ${valQ.toFixed(2)} mm`);
+
+        const tX = centerX + D/2 + 60;
+        setLine('dimT', tX, startY, tX, headBottomY);
+        setLine('extT1', centerX+D/2+5, startY, tX+15, startY);
+        setLine('extT2', centerX+D/2+5, headBottomY, tX+15, headBottomY);
+        setText('lblT', tX + 15, (startY + headBottomY)/2 + 7, `T = ${valT.toFixed(2)} mm`);
+
+        setLine('dimM', centerX-shankW/2, shankBottomY+40, centerX+shankW/2, shankBottomY+40);
+        setLine('extM1', centerX-shankW/2, shankBottomY+5, centerX-shankW/2, shankBottomY+55);
+        setLine('extM2', centerX+shankW/2, shankBottomY+5, centerX+shankW/2, shankBottomY+55);
+        setText('lblM', centerX, shankBottomY+75, `M3`);
+
+        // 肉厚計算
+        const pCorner = { x: centerX + shankW/2, y: headBottomY }; 
+        const vTip = { x: centerX, y: startY + Q + triDepth };
+        const wWallBottom = { x: centerX + d/2, y: startY + Q };
+        
+        let target = { x: 0, y: 0 };
+        if (valQ > valT) {
+            target = { x: centerX + d/2, y: headBottomY };
+        } else {
+            const l2 = Math.pow(vTip.x-wWallBottom.x,2) + Math.pow(vTip.y-wWallBottom.y,2);
+            let t = ((pCorner.x-vTip.x)*(wWallBottom.x-vTip.x) + (pCorner.y-vTip.y)*(wWallBottom.y-vTip.y))/l2;
+            t = Math.max(0, Math.min(1, t));
+            target = { x: vTip.x + t*(wWallBottom.x-vTip.x), y: vTip.y + t*(wWallBottom.y-vTip.y) };
+        }
+        
+        const numericDist = Math.hypot(pCorner.x-target.x, pCorner.y-target.y)/scale;
+        minDistValEl.innerText = numericDist.toFixed(3);
+        setLine('minWallLine', pCorner.x, pCorner.y, target.x, target.y);
+
+        const isPass = numericDist >= 0.35;
+        statusText.innerText = isPass ? "PASS" : "FAIL";
+        resultBox.className = "result-overlay " + (isPass ? "status-success" : "status-danger");
+        statusBox.className = "result-overlay " + (isPass ? "status-success" : "status-danger");
+    }
+
+    function setLine(id, x1, y1, x2, y2) {
+        const el = document.getElementById(id);
+        el.setAttribute('x1', x1); el.setAttribute('y1', y1);
+        el.setAttribute('x2', x2); el.setAttribute('y2', y2);
+    }
+    function setText(id, x, y, val) {
+        const el = document.getElementById(id);
+        el.setAttribute('x', x); el.setAttribute('y', y);
+        if(val !== undefined) el.textContent = val;
+    }
+
+    // 綁定輸入事件與限制處理
+    ['D', 'T', 'Q'].forEach(id => {
+        const num = document.getElementById(`num${id}`);
+        const ran = document.getElementById(`range${id}`);
+
+        num.addEventListener('change', () => {
+            let val = parseFloat(num.value);
+            const min = parseFloat(num.min);
+            const max = parseFloat(num.max);
+            if (isNaN(val)) val = min;
+            if (val < min) val = min;
+            if (val > max) val = max;
+            num.value = val.toFixed(2);
+            ran.value = val;
+            draw();
+        });
+
+        ran.addEventListener('input', () => {
+            num.value = ran.value;
+            draw();
+        });
+    });
+
+    document.getElementById('selectd').addEventListener('change', draw);
+    window.onload = draw;
+</script>
+
+</body>
+</html>
