@@ -25,10 +25,14 @@
 - 專案本地 assistant 層：`000_Agent/`（只放本專案專屬 skill 或 memories，不放全域核心資料）
 - 專案本地任務層：`100_Todo/`
 - 專案本地參考層：`200_Reference/`
+- 靜態網站工作來源：`200_Reference/docs/`
+- 專案腳本：`200_Reference/scripts/`
+- 策略與流程模板：`200_Reference/templates/`
 - 跨專案偏好、固定規則、踩坑經驗才同步到全域核心層。
 - 本專案自己的草稿、素材、進度與任務紀錄留在本專案或 Obsidian 駕駛艙。
 - 若需要專案專屬 assistant skill，建立在 `000_Agent/skills/`；若需要專案獨立記憶，建立在 `000_Agent/memories/`。
 - 不要把 `000_Agent/skills/` symlink 到 `/Users/arrywu/.codex/skills`。
+- 根目錄保持極簡，不建立或保留 `docs/`、`assets/`、`scripts/`、本機 cache 或 runtime。
 
 ## 工作流程
 
@@ -39,6 +43,7 @@
 - 收工時整理本次變更、剩餘事項與下一步，必要時更新 Obsidian 駕駛艙。
 - 既有檔案只補缺口，不覆寫未確認的內容。
 - Git 操作前先確認目前變更範圍，避免把無關檔案一起提交。
+- 專案結構檢查可執行 `bash 200_Reference/scripts/verify_project.sh`。
 
 ## 安全規則
 
