@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>螺絲肉厚檢查系統</title>
+    <style>
+        :root {
+            /* 介面標準色 */
+            --qct-blue: #004b98;
+            --qct-sky-blue: #00adef;
+            --qct-green: #92d050;
+            --qct-orange: #f7941d;
+            --qct-gray: #d1d3d4;
+            
+            /* 介面色階 */
+            --sidebar-bg: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --card-hover: #3d3d3d;
+            --main-bg: #f8f9fa;
+            --text-light: #ffffff;
+            --text-muted: #888888;
+            
+            /* 動畫時間 */
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: var(--main-bg);
+            overflow: hidden;
+        }
+
+        /* --- Sidebar 優化 --- */
+        .sidebar {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            color: var(--text-light);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .brand-area {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 狀態面板優化 */
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 30px;
+            transition: background var(--transition-speed);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #444;
+            position: relative;
+        }
+        
+        .status-dot.active {
+            background-color: var(--qct-green);
+            box-shadow: 0 0 10px var(--qct-green);
+        }
+
+        .status-dot.active::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            border-radius: inherit;
+            animation: ripple 2s infinite;
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+
+        /* 選擇組件優化 */
+        .selection-group {
+            margin-bottom: 25px;
+        }
+
+        .selection-group h3 {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .radio-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .radio-label {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .radio-label input {
+            display: none;
+        }
+
+        .radio-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: var(--card-bg);
+            border: 1.5px solid transparent;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #bbb;
+            transition: all var(--transition-speed);
+        }
+
+        .radio-label:hover .radio-btn {
+            background-color: var(--card-hover);
+            color: #fff;
+        }
+
+        .radio-label input:checked + .radio-btn {
+            background-color: rgba(0, 75, 152, 0.2);
+            border-color: var(--qct-sky-blue);
+            color: var(--qct-sky-blue);
+            font-weight: bold;
+        }
+
+        /* 按鈕優化 */
+        .load-btn {
+            margin-top: auto;
+            padding: 16px;
+            background-color: var(--qct-green);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .load-btn:disabled {
+            background-color: #444;
+            cursor: not-allowed;
+            opacity: 0.5;
+            box-shadow: none;
+        }
+
+        .load-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            box-shadow: 0 6px 15px rgba(146, 208, 80, 0.4);
+        }
+
+        /* --- 主內容區優化 --- */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .top-color-bar {
+            height: 6px;
+            width: 100%;
+            display: flex;
+        }
+        .bar-segment { flex: 1; }
+
+        .content-header {
+            padding: 25px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        .content-body {
+            flex: 1;
+            margin: 0 40px 40px 40px;
+            background: #fff;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid var(--qct-gray);
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        iframe.loaded {
+            opacity: 1;
+        }
+
+        .placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            z-index: 5;
+            transition: opacity 0.5s;
+        }
+
+        .placeholder h2 {
+            font-size: 5rem;
+            color: var(--qct-blue);
+            opacity: 0.05;
+            letter-spacing: 15px;
+        }
+
+        /* 載入遮罩 */
+        .loader-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.9);
+            z-index: 20;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #eee;
+            border-top-color: var(--qct-sky-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 系統提示 */
+        .toast {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translate(-50%, -100px);
+            background-color: var(--qct-orange);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(247, 148, 29, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .toast.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand-area">
+            <span style="color: var(--qct-sky-blue);">Screw</span>
+            <span style="font-weight: 300;">Check</span>
+        </div>
+
+        <div class="status-badge" id="statusBadge">
+            <div id="statusIndicator" class="status-dot"></div>
+            <span id="currentSelectionText">等待選擇規格...</span>
+        </div>
+
+        <form id="selectionForm">
+            <section class="selection-group">
+                <h3>螺絲槽型 (Drive)</h3>
+                <div class="radio-grid">
+                    <label class="radio-label">
+                        <input type="radio" name="driveType" value="Phillips" required>
+                        <div class="radio-btn">Phillips</div>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="driveType" value="Torx">
+                        <div class="radio-btn">Torx</div>
+                    </label>
+                </div>
+            </section>
+
+            <section class="selection-group">
+                <h3>螺絲頭型 (Head)</h3>
+                <div class="radio-grid">
+                    <label class="radio-label">
+                        <input type="radio" name="headType" value="I" required>
+                        <div class="radio-btn">I頭 (Flat)</div>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="headType" value="F">
+                        <div class="radio-btn">F頭 (Countersunk)</div>
+                    </label>
+                </div>
+            </section>
+        </form>
+
+        <button id="loadBtn" class="load-btn">載入分析模組</button>
+    </aside>
+
+    <main class="main-container">
+        <div class="top-color-bar">
+            <div class="bar-segment" style="background: var(--qct-blue)"></div>
+            <div class="bar-segment" style="background: var(--qct-sky-blue)"></div>
+            <div class="bar-segment" style="background: var(--qct-green)"></div>
+            <div class="bar-segment" style="background: var(--qct-orange)"></div>
+        </div>
+
+        <header class="content-header">
+            <h2>螺絲肉厚檢查系統 <span style="font-weight: 300; font-size: 0.9rem; color: #999; margin-left: 10px;">v1.0</span></h2>
+            <div style="text-align: right"></div>
+        </header>
+
+        <section class="content-body" id="mainStage">
+            <div id="loaderOverlay" class="loader-overlay">
+                <div class="spinner"></div>
+                <p style="margin-top:15px; font-size:12px; color:var(--qct-blue); font-weight:bold; letter-spacing:1px;">LOADING DATA...</p>
+            </div>
+
+            <div id="initialView" class="placeholder">
+                <h2>Screw Check</h2>
+                <p style="color: #bbb; letter-spacing: 2px;">請從左側選單開啟分析模組</p>
+            </div>
+
+            <iframe id="moduleFrame" title="分析內容"></iframe>
+        </section>
+
+        <div style="position: absolute; bottom: 15px; left: 40px; font-size: 12px; color: var(--qct-blue); letter-spacing: 1px;">
+            FOR INTERNAL USE ONLY
+        </div>
+    </main>
+
+    <div id="toast" class="toast">請完成所有選項</div>
+
+    <script>
+        /**
+         * 系統模組優化
+         * 增加 0.5 秒延遲以提升視覺感受
+         */
+        const App = {
+            elements: {
+                loadBtn: document.getElementById('loadBtn'),
+                frame: document.getElementById('moduleFrame'),
+                loader: document.getElementById('loaderOverlay'),
+                placeholder: document.getElementById('initialView'),
+                statusText: document.getElementById('currentSelectionText'),
+                statusDot: document.getElementById('statusIndicator'),
+                toast: document.getElementById('toast'),
+                form: document.getElementById('selectionForm')
+            },
+
+            init() {
+                this.bindEvents();
+            },
+
+            bindEvents() {
+                this.elements.loadBtn.addEventListener('click', () => this.handleLoad());
+                
+                this.elements.form.addEventListener('change', () => {
+                    const data = this.getFormData();
+                    if (data.drive && data.head) {
+                        this.elements.statusText.textContent = `準備載入: ${data.drive}-${data.head}頭`;
+                    }
+                });
+            },
+
+            getFormData() {
+                const drive = document.querySelector('input[name="driveType"]:checked')?.value;
+                const head = document.querySelector('input[name="headType"]:checked')?.value;
+                return { drive, head };
+            },
+
+            showToast(msg) {
+                const { toast } = this.elements;
+                toast.textContent = msg;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            },
+
+            async handleLoad() {
+                const { drive, head } = this.getFormData();
+
+                if (!drive || !head) {
+                    this.showToast('請同時選擇「槽型」與「頭型」');
+                    return;
+                }
+
+                // 1. UI 進入載入狀態
+                this.elements.loader.style.display = 'flex';
+                this.elements.loadBtn.disabled = true;
+                this.elements.frame.classList.remove('loaded');
+
+                // 2. 顯式的 0.5 秒延遲 (UX 緩衝)
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                try {
+                    const targetURL = `${drive}-${head}.html`;
+                    
+                    // 3. 設定新網址
+                    this.elements.frame.src = targetURL;
+                    
+                    // 4. 等待資源真正載入完成
+                    this.elements.frame.onload = () => {
+                        // 關閉遮罩
+                        this.elements.loader.style.display = 'none';
+                        this.elements.placeholder.style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            this.elements.placeholder.style.display = 'none';
+                            this.elements.frame.classList.add('loaded');
+                        }, 300);
+                        
+                        // 更新狀態
+                        this.elements.statusText.textContent = `目前模組: ${drive} / ${head}頭`;
+                        this.elements.statusDot.classList.add('active');
+                        this.elements.loadBtn.disabled = false;
+                    };
+
+                    // 錯誤處理 (如果找不到檔案)
+                    this.elements.frame.onerror = () => {
+                        throw new Error('File not found');
+                    };
+
+                } catch (error) {
+                    this.showToast('載入模組失敗，請檢查檔案是否存在');
+                    this.elements.loader.style.display = 'none';
+                    this.elements.loadBtn.disabled = false;
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+</body>
+</html>
