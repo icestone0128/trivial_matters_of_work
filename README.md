@@ -14,13 +14,12 @@
 - `100_Todo/drafts/`、`100_Todo/projects/`、`100_Todo/archive/`
 - `200_Reference/writing-samples/`、`200_Reference/templates/`、`200_Reference/past-work/`
 - `200_Reference/docs/`：GitHub Pages / Live Word Cloud 的本地靜態網站工作來源。
-- `docs/`：由 `200_Reference/docs/` 同步產生的 GitHub Pages 發布鏡像。
 
 ## 專案設定
 
 - GitHub repo：`icestone0128/trivial_matters_of_work`
 - Repo 類型：公開
-- GitHub Pages：使用 `main` 分支 `/docs`；本地網站工作來源整理在 `200_Reference/docs/`，根目錄 `docs/` 作為發布鏡像。
+- GitHub Pages：由獨立 `gh-pages` 分支發布；main 分支的本地網站工作來源放在 `200_Reference/docs/`，根目錄不保留 `docs/`。
 - Firebase：使用 Firebase Hosting
 - 部署：
   - GitHub Pages：`https://icestone0128.github.io/trivial_matters_of_work/`

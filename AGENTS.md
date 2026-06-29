@@ -7,9 +7,9 @@
 - 工作資料夾：`/Users/arrywu/Library/CloudStorage/GoogleDrive-icestone0128@gmail.com/我的雲端硬碟/trivial_matters_of_work`
 - GitHub repo：`icestone0128/trivial_matters_of_work`，公開 repo。
 - 預設分支：`main`
-- GitHub Pages：已使用，線上來源為 `main` 分支 `/docs`；本地網站工作來源整理在 `200_Reference/docs/`，根目錄 `docs/` 作為 GitHub Pages 發布鏡像，需由 `200_Reference/docs/` 同步產生。
+- GitHub Pages：已使用，由獨立 `gh-pages` 分支發布；main 分支的本地網站工作來源放在 `200_Reference/docs/`，根目錄不得保留 `docs/`。
 - Firebase：已使用 Firebase Hosting 作為另一份靜態部署。
-- 部署：GitHub Pages 與 Firebase Hosting；本地靜態網站工作來源以 `200_Reference/docs/` 為主，`docs/` 只作 Pages 發布鏡像。
+- 部署：GitHub Pages 與 Firebase Hosting；本地靜態網站工作來源以 `200_Reference/docs/` 為主。
 
 ## Obsidian 駕駛艙
 
